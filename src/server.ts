@@ -1,22 +1,21 @@
-import bodyParser = require('body-parser');
-import cors = require('cors');
-import * as dotenv from 'dotenv';
-import express = require('express');
-import { Server } from 'http';
+import bodyParser = require("body-parser");
+import cors = require("cors");
+import * as dotenv from "dotenv";
+import express = require("express");
+import { Server } from "http";
 
-import { setupServerRoutes } from './Controller';
-import { setupServerApollo } from './GraphQL';
-import { setupAuthStrategy } from './Utils/Authentication';
-import { resolveVar } from './Utils/Config';
-import { initDatabase } from './Utils/Database/Connect';
-import Logger from './Utils/Logger';
-import sleep from './Utils/Sleep';
-
+import { setupServerRoutes } from "./Controller";
+import { setupServerApollo } from "./GraphQL";
+import { setupAuthStrategy } from "./Utils/Authentication";
+import { resolveVar } from "./Utils/Config";
+import { initDatabase } from "./Utils/Database/Connect";
+import Logger from "./Utils/Logger";
+import sleep from "./Utils/Sleep";
 
 dotenv.config();
 
 async function main() {
-  const serverVersion = require("../../package.json").version;
+  const serverVersion = require("../package.json").version;
   let retry = false;
   let server: Server = null;
 
