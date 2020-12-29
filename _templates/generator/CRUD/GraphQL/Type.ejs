@@ -1,13 +1,13 @@
 ---
-to: src/GraphQL/<%= Name %>.ts
+to: src/GraphQL/<%= Name %>/<%= Name %>.ts
 ---
-
+<% entityName = h.changeCase.camel(name) %> 
 import { gql } from "apollo-server-express";
 import { getRepository } from "typeorm";
 import <%= Name %> from "@/Entity/<%= Name %>/<%= Name %>";
-import { checkCrudAction, CRUD_OP, logCrudAction } from "@/Utils/CRUD/Check";
-import { paginationClause, paginationResponse } from "@/Utils/CRUD/List";
-import { Context } from "@/Utils/CRUD/OperationInterface";
+import { checkCrudAction, CRUD_OP, logCrudAction } from "@/Utils/Check";
+import { paginationClause, paginationResponse } from "@/Utils/ResponseHelper";
+import { Context } from "@/Utils/Context";
 
 export const <%= Name %>TypeDefs = gql`
   type <%= Name %> {
@@ -39,8 +39,8 @@ export const <%= Name %>TypeDefs = gql`
   }
 
   extend type Mutation {
-    create<%= Name %>(<%= Name %>: Create<%= Name %>Input!): <%= Name %>
-    update<%= Name %>(id: ID!, <%= Name %>: Update<%= Name %>Input!): <%= Name %>
+    create<%= Name %>(<%= entityName %>: Create<%= Name %>Input!): <%= Name %>
+    update<%= Name %>(id: ID!, <%= entityName %>: Update<%= Name %>Input!): <%= Name %>
     delete<%= Name %>(id: ID!, force: Boolean = false): Boolean
   }
 `;
@@ -75,11 +75,11 @@ export const <%= Name %>Resolvers = {
       logCrudAction(args, ctx, info);
       checkCrudAction(<%= Name %>, ctx.user, CRUD_OP.CREATE);
 
-      const <%= name %> = await getRepository(<%= Name %>).save(args.<%= name %>);
+      const <%= entityName %> = await getRepository(<%= Name %>).save(args.<%= entityName %>);
 
-      ctx.activity.info("<%= Name %> {0} has been created", [<%= name %>.id]);
+      ctx.activity.info("<%= Name %> {0} has been created", [<%= entityName %>.id]);
 
-      return <%= name %>;
+      return <%= entityName %>;
     },
 
     update<%= Name %>: async (_source, args, ctx: Context, info) => {
@@ -87,15 +87,15 @@ export const <%= Name %>Resolvers = {
       checkCrudAction(<%= Name %>, ctx.user, CRUD_OP.UPDATE);
 
       const repo = getRepository(<%= Name %>);
-      const <%= name %> = await repo.findOneOrFail(args.id);
+      const <%= entityName %> = await repo.findOneOrFail(args.id);
 
-      repo.merge(<%= name %>, args.<%= name %>);
+      repo.merge(<%= entityName %>, args.<%= entityName %>);
 
-      await repo.save(<%= name %>);
+      await repo.save(<%= entityName %>);
 
-      ctx.activity.info("<%= Name %> {0} has been updated", [<%= name %>.id]);
+      ctx.activity.info("<%= Name %> {0} has been updated", [<%= entityName %>.id]);
 
-      return <%= name %>;
+      return <%= entityName %>;
     },
 
     delete<%= Name %>: async (source, args, ctx: Context, info) => {
@@ -103,14 +103,14 @@ export const <%= Name %>Resolvers = {
       checkCrudAction(<%= Name %>, ctx.user, CRUD_OP.DELETE);
 
       const repo = getRepository(<%= Name %>);
-      const <%= name %> = await repo.findOne(args.id, { withDeleted: args.force });
+      const <%= entityName %> = await repo.findOne(args.id, { withDeleted: args.force });
 
-      if (!user) return false;
+      if (!<%= entityName %>) return false;
 
-      if (args.force) await repo.remove(<%= name %>);
-      else await repo.softDelete({ id: <%= name %>.id });
+      if (args.force) await repo.remove(<%= entityName %>);
+      else await repo.softDelete({ id: <%= entityName %>.id });
 
-      ctx.activity.warn("<%= Name %> {0} has been deleted", [<%= name %>.id]);
+      ctx.activity.warn("<%= Name %> {0} has been deleted", [<%= entityName %>.id]);
 
       return true;
     }
