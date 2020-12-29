@@ -1,13 +1,14 @@
 import { AuthenticationError } from "apollo-server-express";
 import { Request } from "express";
+import passport = require("passport");
 import { ExtractJwt, Strategy as JWTStrategy } from "passport-jwt";
 import { getRepository } from "typeorm";
+
 import Activity from "../Entity/Activity/Activity";
 import User from "../Entity/User/User";
 import Logger from "./Logger";
-import passport = require("passport");
 
-export function setupServerAuth(app) {
+export function setupAuthStrategy(app) {
   const tokenStrategy = new JWTStrategy(
     {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -41,7 +42,10 @@ export async function checkCredentials(req: Request): Promise<User> {
   };
 
   if (user) {
-    if (user.isPasswordValid(password) || process.env.NODE_ENV === "development") {
+    if (
+      user.isPasswordValid(password) ||
+      process.env.NODE_ENV === "development"
+    ) {
       if (!user.isActive) throw new Error("AUTH/USER_NOT_ACTIVE");
 
       Logger.auth.info(

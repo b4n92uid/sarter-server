@@ -1,26 +1,30 @@
-import * as dotenv from "dotenv";
-import { Server } from "http";
-import { setupServerRoutes } from "./Controller";
-import { setupServerApollo } from "./GraphQL";
-import { setupServerAuth } from "./Utils/Authentication";
-import { resolveVar } from "./Utils/Config";
-import { initDatabase } from "./Utils/Database/Connect";
-import Logger from "./Utils/Logger";
-import sleep from "./Utils/Sleep";
-import { SERVER_VERSION } from "./Utils/Versions";
+import bodyParser = require('body-parser');
+import cors = require('cors');
+import * as dotenv from 'dotenv';
+import express = require('express');
+import { Server } from 'http';
 
-import cors = require("cors");
-import express = require("express");
-import bodyParser = require("body-parser");
+import { setupServerRoutes } from './Controller';
+import { setupServerApollo } from './GraphQL';
+import { setupAuthStrategy } from './Utils/Authentication';
+import { resolveVar } from './Utils/Config';
+import { initDatabase } from './Utils/Database/Connect';
+import Logger from './Utils/Logger';
+import sleep from './Utils/Sleep';
+
 
 dotenv.config();
 
 async function main() {
+  const serverVersion = require("../../package.json").version;
   let retry = false;
   let server: Server = null;
+
   do {
     try {
-      Logger.server.info(`Server v${SERVER_VERSION} on ${process.env.NODE_ENV} environment`);
+      Logger.server.info(
+        `Server v${serverVersion} on ${process.env.NODE_ENV} environment`
+      );
 
       await initDatabase();
 
@@ -32,14 +36,16 @@ async function main() {
       app.use(bodyParser.json({ limit: "5mb" }));
       app.use("/uploads", express.static(resolveVar("/uploads")));
 
-      setupServerAuth(app);
+      setupAuthStrategy(app);
 
       setupServerRoutes(app);
 
       setupServerApollo(app);
 
       server = app.listen(parseInt(process.env.PORT), () => {
-        Logger.server.info(`🚀 Ready at http://localhost:${process.env.PORT}/api`);
+        Logger.server.info(
+          `🚀 Ready at http://localhost:${process.env.PORT}/api`
+        );
       });
       retry = false;
     } catch (error) {

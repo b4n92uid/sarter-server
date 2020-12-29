@@ -1,8 +1,5 @@
 import { getRepository, SelectQueryBuilder } from "typeorm";
 
-import { checkCrudAction, CRUD_OP, logCrudAction } from "./Check";
-import { QueryOptions } from "./OperationInterface";
-
 export function paginationClause(page: number, limit: number) {
   return {
     take: limit,
@@ -16,7 +13,11 @@ export function paginationQuery(query: SelectQueryBuilder<any>, filter: any) {
   if (filter.page > 1) query.skip((filter.page - 1) * filter.limit);
 }
 
-export function paginationResponse(nodes: Array<any>, count: number, limit: number) {
+export function paginationResponse(
+  nodes: Array<any>,
+  count: number,
+  limit: number
+) {
   return {
     nodes,
     pagination: {
@@ -46,7 +47,10 @@ export async function paginatedListResult(EntityModel, args) {
   return paginationResponse(rows, count, limit);
 }
 
-export async function paginatedListResultFromSql(query: SelectQueryBuilder<any>, args) {
+export async function paginatedListResultFromSql(
+  query: SelectQueryBuilder<any>,
+  args
+) {
   const { limit, page } = args.filter;
 
   if (limit > 0) query.limit(limit);
@@ -56,18 +60,4 @@ export async function paginatedListResultFromSql(query: SelectQueryBuilder<any>,
   const [nodes, count] = await query.getManyAndCount();
 
   return paginationResponse(nodes, count, limit);
-}
-
-export function makeListOperation(EntityModel, options?: QueryOptions) {
-  return async (_source, args, ctx, info) => {
-    logCrudAction(args, ctx, info);
-
-    options = {
-      operation: plainListResult,
-      ...options
-    };
-
-    checkCrudAction(EntityModel, ctx.user, CRUD_OP.LIST);
-    return options.operation(EntityModel, args);
-  };
 }

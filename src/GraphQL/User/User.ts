@@ -2,9 +2,9 @@ import { ApolloError, ForbiddenError, gql, UserInputError } from "apollo-server-
 import { isNil } from "lodash";
 import { getRepository, In, Not } from "typeorm";
 import User, { ReservedUsername } from "../../Entity/User/User";
-import { checkCrudAction, CRUD_OP, logCrudAction } from "../../Utils/CRUD/Check";
-import { paginationClause, paginationResponse } from "../../Utils/CRUD/List";
-import { Context } from "../../Utils/CRUD/OperationInterface";
+import { checkCrudAction, CRUD_OP, logCrudAction } from "../../Utils/Check";
+import { paginationClause, paginationResponse } from "../../Utils/ResponseHelper";
+import { Context } from "../../Utils/Context";
 import { handleUploadFile, removeUploadFile } from "../../Utils/Uploads";
 
 export const UserTypeDefs = gql`

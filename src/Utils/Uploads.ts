@@ -7,15 +7,18 @@ import sharp from "sharp";
 
 import { resolveVar } from "./Config";
 
+type UploadTypes = "user";
+
 const ALLOWED_FILE_TYPE = [".webp", ".jpeg", ".jpg", ".png", ".gif"];
 
 function getUploadPath(type: string, filename: string) {
   return join(resolveVar("/uploads"), type, filename);
 }
 
-type UploadTypes = "user" | "company" | "product";
-
-export async function handleUploadFile(type: UploadTypes, file: any): Promise<string> {
+export async function handleUploadFile(
+  type: UploadTypes,
+  file: any
+): Promise<string> {
   const { createReadStream, filename } = await file.promise;
 
   const ext = extname(filename).toLowerCase();

@@ -1,7 +1,7 @@
 import { ForbiddenError } from "apollo-server-express";
-import User from "../../Entity/User/User";
-import Logger from "../Logger";
-import { Context } from "./OperationInterface";
+import User from "../Entity/User/User";
+import Logger from "./Logger";
+import { Context } from "./Context";
 import { GraphQLResolveInfo } from "graphql";
 
 export function throwIfNotGranted(user: User, access: string | string[]) {
@@ -11,15 +11,25 @@ export function throwIfNotGranted(user: User, access: string | string[]) {
   }
 }
 
-export function throwIfNotGrantedOnModel(user: User, model: any, action: string) {
+export function throwIfNotGrantedOnModel(
+  user: User,
+  model: any,
+  action: string
+) {
   const specificAction = `${model.name.toUpperCase()}_${action.toUpperCase()}`;
   const generalAction = `${model.name.toUpperCase()}_ALL`;
 
   throwIfNotGranted(user, [specificAction, generalAction]);
 }
 
-export function logCrudAction(args: any, ctx: Context, info: GraphQLResolveInfo) {
-  Logger.query.debug(`@${ctx.user.username} ${info.fieldName} ${JSON.stringify(args)}`);
+export function logCrudAction(
+  args: any,
+  ctx: Context,
+  info: GraphQLResolveInfo
+) {
+  Logger.query.debug(
+    `@${ctx.user.username} ${info.fieldName} ${JSON.stringify(args)}`
+  );
 }
 
 export function checkCrudAction(model, user: User, action: string) {

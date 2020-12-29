@@ -4,10 +4,9 @@ import { isNil } from "lodash";
 import { Between, getRepository, MoreThan } from "typeorm";
 
 import Activity from "../../Entity/Activity/Activity";
-import { logCrudAction } from "../../Utils/CRUD/Check";
-import { makeGetOperation } from "../../Utils/CRUD/Get";
-import { paginationResponse } from "../../Utils/CRUD/List";
-import { Context } from "../../Utils/CRUD/OperationInterface";
+import { logCrudAction } from "../../Utils/Check";
+import { paginationResponse } from "../../Utils/ResponseHelper";
+import { Context } from "../../Utils/Context";
 
 export const ActivityTypeDefs = gql`
   type Activity {
@@ -36,22 +35,22 @@ export const ActivityTypeDefs = gql`
   }
 
   extend type Query {
-    getActivity(id: ID!): Activity
     listActivity(filter: ActivityFilter): ActivityPagination
   }
 `;
 
 export const ActivityResolvers = {
   Query: {
-    getActivity: makeGetOperation(Activity),
-
     listActivity: async (parent, args, ctx: Context, info) => {
       logCrudAction(args, ctx, info);
 
       const filter = args.filter;
 
       const where = {
-        createdAt: Between(startOfDay(parseISO(filter.date)), endOfDay(parseISO(filter.date)))
+        createdAt: Between(
+          startOfDay(parseISO(filter.date)),
+          endOfDay(parseISO(filter.date))
+        )
       };
 
       if (!isNil(filter.minLevel)) {
