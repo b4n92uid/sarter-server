@@ -1,0 +1,33 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Compiled
+dist/
+config/machine_access.yaml
+
+# Dependency directories
+node_modules/
+
+# Optional npm cache directory
+.npm
+
+# dotenv environment variables file
+.env
+.env.test
+
+# Code editor
+.vscode
+*.code-workspace
+
+# Docker
+.storage
+
+# Runtime generated
+mysql
+var/backups/*
+var/logs/*
+var/uploads/*
+var/machine_access.yaml
+!/**/.gitkeep

@@ -1,0 +1,118 @@
+---
+to: src/GraphQL/<%= Name %>.ts
+---
+
+import { gql } from "apollo-server-express";
+import { getRepository } from "typeorm";
+import <%= Name %> from "@/Entity/<%= Name %>/<%= Name %>";
+import { checkCrudAction, CRUD_OP, logCrudAction } from "@/Utils/CRUD/Check";
+import { paginationClause, paginationResponse } from "@/Utils/CRUD/List";
+import { Context } from "@/Utils/CRUD/OperationInterface";
+
+export const <%= Name %>TypeDefs = gql`
+  type <%= Name %> {
+    id: ID
+    createdAt: String
+    updatedAt: String
+    deletedAt: String
+  }
+
+  input Create<%= Name %>Input {
+   
+  }
+
+  input Update<%= Name %>Input {
+   
+  }
+
+  input <%= Name %>Filter {
+  }
+
+  type <%= Name %>Pagination {
+    nodes: [<%= Name %>]
+    pagination: PaginationInfo
+  }
+
+  extend type Query {
+    get<%= Name %>(id: ID!): <%= Name %>
+    list<%= Name %>(filter: <%= Name %>Filter!, page: Int = 1, limit: Int = 8): <%= Name %>Pagination
+  }
+
+  extend type Mutation {
+    create<%= Name %>(<%= Name %>: Create<%= Name %>Input!): <%= Name %>
+    update<%= Name %>(id: ID!, <%= Name %>: Update<%= Name %>Input!): <%= Name %>
+    delete<%= Name %>(id: ID!, force: Boolean = false): Boolean
+  }
+`;
+
+export const <%= Name %>Resolvers = {
+  Query: {
+    get<%= Name %>: async (_source, args, ctx, info) => {
+      logCrudAction(args, ctx, info);
+      checkCrudAction(<%= Name %>, ctx.user, CRUD_OP.GET);
+
+      return getRepository(<%= Name %>).findOneOrFail(args.id);
+    },
+
+    list<%= Name %>: async (_source, args, ctx, info) => {
+      logCrudAction(args, ctx, info);
+      checkCrudAction(<%= Name %>, ctx.user, CRUD_OP.LIST);
+
+      if (args.filter.deleted && !ctx.user.isGranted("ADMIN"))
+        throw new Error("DELETED_FILTER_ACCESS_DENIED");
+
+      const [rows, count] = await getRepository(<%= Name %>).findAndCount({
+        withDeleted: args.filter.deleted,
+        ...paginationClause(args.filter.page, args.filter.limit)
+      });
+
+      return paginationResponse(rows, count, args.filter.limit);
+    }
+  },
+
+  Mutation: {
+    create<%= Name %>: async (_source, args, ctx: Context, info) => {
+      logCrudAction(args, ctx, info);
+      checkCrudAction(<%= Name %>, ctx.user, CRUD_OP.CREATE);
+
+      const <%= name %> = await getRepository(<%= Name %>).save(args.<%= name %>);
+
+      ctx.activity.info("<%= Name %> {0} has been created", [<%= name %>.id]);
+
+      return <%= name %>;
+    },
+
+    update<%= Name %>: async (_source, args, ctx: Context, info) => {
+      logCrudAction(args, ctx, info);
+      checkCrudAction(<%= Name %>, ctx.user, CRUD_OP.UPDATE);
+
+      const repo = getRepository(<%= Name %>);
+      const <%= name %> = await repo.findOneOrFail(args.id);
+
+      repo.merge(<%= name %>, args.<%= name %>);
+
+      await repo.save(<%= name %>);
+
+      ctx.activity.info("<%= Name %> {0} has been updated", [<%= name %>.id]);
+
+      return <%= name %>;
+    },
+
+    delete<%= Name %>: async (source, args, ctx: Context, info) => {
+      logCrudAction(args, ctx, info);
+      checkCrudAction(<%= Name %>, ctx.user, CRUD_OP.DELETE);
+
+      const repo = getRepository(<%= Name %>);
+      const <%= name %> = await repo.findOne(args.id, { withDeleted: args.force });
+
+      if (!user) return false;
+
+      if (args.force) await repo.remove(<%= name %>);
+      else await repo.softDelete({ id: <%= name %>.id });
+
+      ctx.activity.warn("<%= Name %> {0} has been deleted", [<%= name %>.id]);
+
+      return true;
+    }
+  }
+};

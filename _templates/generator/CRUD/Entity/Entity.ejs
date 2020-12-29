@@ -1,0 +1,11 @@
+---
+to: src/Entity/<%= Name %>/<%= Name %>.ts
+---
+
+import { Entity, PrimaryGeneratedColumn } from "typeorm";
+
+@Entity({ name: "<%= name %>" })
+export default class <%= Name %>  {
+  @PrimaryGeneratedColumn()
+  id: number;
+}
