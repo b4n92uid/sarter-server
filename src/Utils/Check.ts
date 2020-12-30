@@ -5,6 +5,11 @@ import { Context } from "./Context";
 import { GraphQLResolveInfo } from "graphql";
 
 export function throwIfNotGranted(user: User, access: string | string[]) {
+  if (!user) {
+    Logger.query.warn(`access denied from "anonymous" on ${access}`);
+    throw new ForbiddenError("Access not granted");
+  }
+
   if (!user.isGranted(access)) {
     Logger.query.warn(`access denied from "${user.username}" on ${access}`);
     throw new ForbiddenError("Access not granted");
@@ -27,9 +32,13 @@ export function logCrudAction(
   ctx: Context,
   info: GraphQLResolveInfo
 ) {
-  Logger.query.debug(
-    `@${ctx.user.username} ${info.fieldName} ${JSON.stringify(args)}`
-  );
+  if (ctx.user) {
+    Logger.query.debug(
+      `@${ctx.user.username} ${info.fieldName} ${JSON.stringify(args)}`
+    );
+  } else {
+    Logger.query.debug(`@anonymous ${info.fieldName} ${JSON.stringify(args)}`);
+  }
 }
 
 export function checkCrudAction(model, user: User, action: string) {

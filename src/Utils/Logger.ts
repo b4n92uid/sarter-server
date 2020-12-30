@@ -1,3 +1,4 @@
+import { toNumber } from "lodash";
 import { createLogger, format, transports } from "winston";
 import "winston-daily-rotate-file";
 
@@ -42,7 +43,10 @@ require("dotenv").config();
 
 const auth = createCustomLogger("AUTH", "debug");
 const query = createCustomLogger("QUERY", "debug");
-const database = createCustomLogger("DB", process.env.DATABASE_LOG_VERBOSE ? "debug" : "info");
+const database = createCustomLogger(
+  "DB",
+  toNumber(process.env.DATABASE_LOG_VERBOSE) ? "debug" : "info"
+);
 const server = createCustomLogger("SERVER", "debug");
 const cli = createCustomLogger("CLI", "debug");
 
