@@ -20,8 +20,6 @@ interface StringMap {
 
 const SecurityRoles = readConfig("security.yaml") as StringMap;
 
-export const ReservedUsername = ["support", "website"];
-
 @Entity({ name: "user" })
 export default class User {
   @PrimaryGeneratedColumn()
