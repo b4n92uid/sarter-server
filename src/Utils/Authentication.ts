@@ -31,14 +31,10 @@ export async function checkCredentials(req: Request): Promise<User> {
   const { username, password } = req.body;
 
   const user = await getRepository(User).findOne({ where: { username } });
-  const hostname = req.header("x-hostname");
-  const machineId = req.header("x-machine-id");
   const appVer = req.header("x-app-version");
 
   const activityFields = {
-    ip: req.ip,
-    hostname,
-    machineId
+    ip: req.ip
   };
 
   if (user) {
@@ -49,7 +45,7 @@ export async function checkCredentials(req: Request): Promise<User> {
       if (!user.isActive) throw new Error("AUTH/USER_NOT_ACTIVE");
 
       Logger.auth.info(
-        `User authenticated '${user.username}' with app v${appVer} from '${hostname}'`
+        `User authenticated '${user.username}' with app v${appVer}`
       );
 
       await getRepository(Activity).save({

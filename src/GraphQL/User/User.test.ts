@@ -30,7 +30,6 @@ test("Add a user", async () => {
           phone
           lastLoginAt
           lastActivityAt
-          lastMachineId
           lastIp
           createdAt
           updatedAt

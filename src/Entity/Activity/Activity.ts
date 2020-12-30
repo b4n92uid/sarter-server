@@ -1,4 +1,10 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, ManyToOne } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToOne
+} from "typeorm";
 
 import User from "../User/User";
 
@@ -24,10 +30,4 @@ export default class Activity {
 
   @Column()
   ip: string;
-
-  @Column()
-  hostname: string;
-
-  @Column()
-  machineId: string;
 }

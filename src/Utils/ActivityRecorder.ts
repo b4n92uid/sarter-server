@@ -14,14 +14,15 @@ export default class ActivityRecorder {
       level: level,
       content: msg,
       params: params,
-      ip: this.req.ip,
-      hostname: this.req.header("x-hostname") || "N/A",
-      machineId: this.req.header("x-machine-id") || "N/A"
+      ip: this.req.ip
     });
 
     for (let i = 0; i < params.length; i++) {
-      if (params[i]) msg = msg.replace(`{${i}}`, "`" + params[i].toString() + "`");
-      else msg = msg.replace(`{${i}}`, "null");
+      if (params[i]) {
+        msg = msg.replace(`{${i}}`, "`" + params[i].toString() + "`");
+      } else {
+        msg = msg.replace(`{${i}}`, "null");
+      }
     }
 
     Logger.query.info(msg);

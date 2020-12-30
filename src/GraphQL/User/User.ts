@@ -18,7 +18,6 @@ export const UserTypeDefs = gql`
     phone: String
     lastLoginAt: String
     lastActivityAt: String
-    lastMachineId: String
     lastIp: String
     createdAt: String
     updatedAt: String

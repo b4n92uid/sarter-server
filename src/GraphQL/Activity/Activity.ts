@@ -17,8 +17,6 @@ export const ActivityTypeDefs = gql`
     content: String
     params: [String]
     ip: String
-    hostname: String
-    machineId: String
   }
 
   type ActivityPagination {

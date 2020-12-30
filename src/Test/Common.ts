@@ -10,8 +10,7 @@ const TEST_URL = `http://localhost:${process.env.PORT}/api/`;
 export const TEST_HEADERS = {
   "X-Machine-ID": "123456789",
   "X-App-Version": "0.1.0",
-  "X-App-ID": "com.mosaic.store",
-  "X-Hostname": "Starfeel",
+  "X-App-ID": "com.company.app",
   "Content-Type": "application/json"
 };
 
