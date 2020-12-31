@@ -1,8 +1,9 @@
 import compressing from "compressing";
 import { format } from "date-fns";
-import { unlinkSync } from "fs";
+import { remove, ensureDir } from "fs-extra";
 import { trimStart } from "lodash";
 import mysqldump from "mysqldump";
+import { dirname } from "path";
 import { resolveRoot } from "../Config";
 
 export function createDatabaseBackupFilename(date: Date): string {
@@ -13,7 +14,10 @@ export function createDatabaseBackupFilename(date: Date): string {
 export async function backupDatabase(dest: string): Promise<void> {
   const dbString = new URL(process.env.DATABASE_URL);
 
+  // TODO: Make path to dest
   const tmpFilename = dest + ".tmp";
+
+  await ensureDir(dirname(tmpFilename));
 
   await mysqldump({
     connection: {
@@ -27,5 +31,5 @@ export async function backupDatabase(dest: string): Promise<void> {
 
   await compressing.gzip.compressFile(tmpFilename, dest);
 
-  unlinkSync(tmpFilename);
+  await remove(tmpFilename);
 }
