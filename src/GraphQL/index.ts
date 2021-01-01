@@ -3,9 +3,9 @@ import { isFunction } from "lodash";
 import { getConnection } from "typeorm";
 
 import User from "../Entity/User/User";
-import Schema from "./Schema";
 import ActivityRecorder from "../Utils/ActivityRecorder";
 import Logger from "../Utils/Logger";
+import Schema from "./Schema";
 
 function propertyAccess(object, key) {
   if (isFunction(object[key])) return object[key]();
@@ -17,7 +17,9 @@ function propertyAccess(object, key) {
   const conn = getConnection();
 
   if (conn.hasMetadata(object.constructor.name)) {
-    const rel = conn.getMetadata(object.constructor.name).findRelationWithPropertyPath(key);
+    const rel = conn
+      .getMetadata(object.constructor.name)
+      .findRelationWithPropertyPath(key);
 
     if (rel) {
       if (rel.isManyToOne || rel.isOneToOne) {
