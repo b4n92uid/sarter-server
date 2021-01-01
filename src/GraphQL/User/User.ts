@@ -5,14 +5,15 @@ import {
   UserInputError
 } from "apollo-server-express";
 import { isNil } from "lodash";
-import { getRepository, In, Not } from "typeorm";
+import { getRepository } from "typeorm";
+
 import User from "../../Entity/User/User";
-import { checkCrudAction, CRUD_OP, logCrudAction } from "../../Utils/Check";
+import { checkCrudAction, CRUD_OP } from "../../Utils/Check";
+import { Context } from "../../Utils/Context";
 import {
   paginationClause,
   paginationResponse
 } from "../../Utils/ResponseHelper";
-import { Context } from "../../Utils/Context";
 import { handleUploadFile, removeUploadFile } from "../../Utils/Uploads";
 
 export const UserTypeDefs = gql`
@@ -66,14 +67,14 @@ export const UserTypeDefs = gql`
   }
 
   extend type Query {
-    getUser(id: ID!): User
-    listUser(filter: UserFilter!): UserPagination
+    getUser(id: ID!): User @log
+    listUser(filter: UserFilter!): UserPagination @log
   }
 
   extend type Mutation {
-    createUser(user: CreateUserInput!): User
-    updateUser(id: ID!, user: UpdateUserInput!): User
-    deleteUser(id: ID!, force: Boolean = false): Boolean
+    createUser(user: CreateUserInput!): User @log
+    updateUser(id: ID!, user: UpdateUserInput!): User @log
+    deleteUser(id: ID!, force: Boolean = false): Boolean @log
 
     changeUserPassword(currentPassword: String!, newPassword: String!): Boolean
   }
@@ -81,8 +82,7 @@ export const UserTypeDefs = gql`
 
 export const UserResolvers = {
   Query: {
-    getUser: async (_source, args, ctx, info) => {
-      logCrudAction(args, ctx, info);
+    getUser: async (_source, args, ctx) => {
       const user = await getRepository(User).findOne(args.id);
 
       // We check permission only when we query other users
@@ -90,8 +90,7 @@ export const UserResolvers = {
       return user;
     },
 
-    listUser: async (_source, args, ctx, info) => {
-      logCrudAction(args, ctx, info);
+    listUser: async (_source, args, ctx) => {
       checkCrudAction(User, ctx.user, CRUD_OP.LIST);
 
       if (args.filter.deleted && !ctx.user.isGranted("ADMIN"))
@@ -107,8 +106,7 @@ export const UserResolvers = {
   },
 
   Mutation: {
-    createUser: async (_source, args, ctx: Context, info) => {
-      logCrudAction(args, ctx, info);
+    createUser: async (_source, args, ctx: Context) => {
       checkCrudAction(User, ctx.user, CRUD_OP.CREATE);
 
       const username = (args.user.username = args.user.username.toLowerCase());
@@ -140,9 +138,7 @@ export const UserResolvers = {
       return user;
     },
 
-    updateUser: async (_source, args, ctx: Context, info) => {
-      logCrudAction(args, ctx, info);
-
+    updateUser: async (_source, args, ctx: Context) => {
       const repo = getRepository(User);
       const user = await repo.findOne(args.id);
 
@@ -169,8 +165,7 @@ export const UserResolvers = {
       return user;
     },
 
-    deleteUser: async (source, args, ctx: Context, info) => {
-      logCrudAction(args, ctx, info);
+    deleteUser: async (source, args, ctx: Context) => {
       checkCrudAction(User, ctx.user, CRUD_OP.DELETE);
 
       const repo = getRepository(User);
@@ -186,9 +181,7 @@ export const UserResolvers = {
       return true;
     },
 
-    changeUserPassword: async (_source, args, ctx: Context, info) => {
-      logCrudAction(args, ctx, info);
-
+    changeUserPassword: async (_source, args, ctx: Context) => {
       if (!ctx.user.isPasswordValid(args.currentPassword))
         throw new ForbiddenError("The current password is invalid");
 

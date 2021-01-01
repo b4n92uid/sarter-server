@@ -33,7 +33,7 @@ export const ActivityTypeDefs = gql`
   }
 
   extend type Query {
-    listActivity(filter: ActivityFilter): ActivityPagination
+    listActivity(filter: ActivityFilter): ActivityPagination @log
   }
 `;
 

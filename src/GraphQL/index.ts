@@ -1,11 +1,11 @@
-import { ApolloServer } from "apollo-server-express";
-import { isFunction } from "lodash";
-import { getConnection } from "typeorm";
+import { ApolloServer } from 'apollo-server-express';
+import { isFunction } from 'lodash';
+import { getConnection } from 'typeorm';
 
-import User from "../Entity/User/User";
-import ActivityRecorder from "../Utils/ActivityRecorder";
-import Logger from "../Utils/Logger";
-import Schema from "./Schema";
+import User from '../Entity/User/User';
+import ActivityRecorder from '../Utils/ActivityRecorder';
+import Logger from '../Utils/Logger';
+import Schema from './Schema';
 
 function propertyAccess(object, key) {
   if (isFunction(object[key])) return object[key]();
