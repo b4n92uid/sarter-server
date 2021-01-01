@@ -20,7 +20,6 @@ export const UserTypeDefs = gql`
     id: ID
     fullname: String
     username: String
-    name: String
     avatarUrl: String
     mail: String
     phone: String
