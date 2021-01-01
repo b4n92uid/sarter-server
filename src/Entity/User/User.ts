@@ -76,10 +76,6 @@ export default class User {
     return null;
   }
 
-  name(): string {
-    return this.fullname ? this.fullname : this.username;
-  }
-
   hashPassword(password: string): void {
     this.password = User.generateHashPassword(password);
   }
