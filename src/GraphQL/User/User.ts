@@ -67,14 +67,23 @@ export const UserTypeDefs = gql`
   }
 
   extend type Query {
-    getUser(id: ID!): User @log
-    listUser(filter: UserFilter!): UserPagination @log
+    getUser(id: ID!): User @log @auth(roles: ["USER_GET"])
+
+    listUser(filter: UserFilter!): UserPagination
+      @log
+      @auth(roles: ["USER_LIST"])
   }
 
   extend type Mutation {
-    createUser(user: CreateUserInput!): User @log
-    updateUser(id: ID!, user: UpdateUserInput!): User @log
-    deleteUser(id: ID!, force: Boolean = false): Boolean @log
+    createUser(user: CreateUserInput!): User @log @auth(roles: ["USER_CREATE"])
+
+    updateUser(id: ID!, user: UpdateUserInput!): User
+      @log
+      @auth(roles: ["USER_UPDATE"])
+
+    deleteUser(id: ID!, force: Boolean = false): Boolean
+      @log
+      @auth(roles: ["USER_DELETE"])
 
     changeUserPassword(currentPassword: String!, newPassword: String!): Boolean
   }
@@ -84,15 +93,10 @@ export const UserResolvers = {
   Query: {
     getUser: async (_source, args, ctx) => {
       const user = await getRepository(User).findOne(args.id);
-
-      // We check permission only when we query other users
-      if (user.id !== ctx.user.id) checkCrudAction(User, ctx.user, CRUD_OP.GET);
       return user;
     },
 
     listUser: async (_source, args, ctx) => {
-      checkCrudAction(User, ctx.user, CRUD_OP.LIST);
-
       if (args.filter.deleted && !ctx.user.isGranted("ADMIN"))
         throw new Error("DELETED_FILTER_ACCESS_DENIED");
 
@@ -107,8 +111,6 @@ export const UserResolvers = {
 
   Mutation: {
     createUser: async (_source, args, ctx: Context) => {
-      checkCrudAction(User, ctx.user, CRUD_OP.CREATE);
-
       const username = (args.user.username = args.user.username.toLowerCase());
 
       let user = await getRepository(User).findOne({
@@ -142,10 +144,6 @@ export const UserResolvers = {
       const repo = getRepository(User);
       const user = await repo.findOne(args.id);
 
-      if (user.id !== ctx.user.id) {
-        checkCrudAction(User, ctx.user, CRUD_OP.UPDATE);
-      }
-
       if (!isNil(args.user.avatar)) {
         args.user.avatar = await handleUploadFile("user", args.user.avatar);
       } else if (args.user.avatar === null) {
@@ -166,8 +164,6 @@ export const UserResolvers = {
     },
 
     deleteUser: async (source, args, ctx: Context) => {
-      checkCrudAction(User, ctx.user, CRUD_OP.DELETE);
-
       const repo = getRepository(User);
       const user = await repo.findOne(args.id, { withDeleted: args.force });
 

@@ -4,9 +4,7 @@ import { isNil } from "lodash";
 import { Between, getRepository, MoreThan } from "typeorm";
 
 import Activity from "../../Entity/Activity/Activity";
-import { logCrudAction } from "../../Utils/Check";
 import { paginationResponse } from "../../Utils/ResponseHelper";
-import { Context } from "../../Utils/Context";
 
 export const ActivityTypeDefs = gql`
   type Activity {
@@ -33,15 +31,15 @@ export const ActivityTypeDefs = gql`
   }
 
   extend type Query {
-    listActivity(filter: ActivityFilter): ActivityPagination @log
+    listActivity(filter: ActivityFilter): ActivityPagination
+      @log
+      @auth(roles: ["ACTIVITY_LIST"])
   }
 `;
 
 export const ActivityResolvers = {
   Query: {
-    listActivity: async (parent, args, ctx: Context, info) => {
-      logCrudAction(args, ctx, info);
-
+    listActivity: async (_source, args) => {
       const filter = args.filter;
 
       const where = {
@@ -55,10 +53,8 @@ export const ActivityResolvers = {
         where["level"] = MoreThan(filter.minLevel);
       }
 
-      if (ctx.user.isGranted("ADMIN")) {
-        if (!isNil(filter.userId)) where["userId"] = filter.userId;
-      } else {
-        where["userId"] = ctx.user.id;
+      if (!isNil(filter.userId)) {
+        where["userId"] = filter.userId;
       }
 
       const [rows, count] = await getRepository(Activity).findAndCount({
