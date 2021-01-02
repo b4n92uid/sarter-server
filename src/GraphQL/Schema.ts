@@ -3,6 +3,7 @@ import { gql, makeExecutableSchema } from "apollo-server-express";
 import { ActivityResolvers, ActivityTypeDefs } from "./Activity/Activity";
 import { AuthDirective } from "./Directives/AuthDirective";
 import { LogDirective } from "./Directives/LogDirective";
+import { UploadDirective } from "./Directives/UploadDirective";
 import { UserResolvers, UserTypeDefs } from "./User/User";
 
 const Query = gql`
@@ -10,6 +11,7 @@ const Query = gql`
 
   directive @log on FIELD_DEFINITION
   directive @auth(roles: [String]) on FIELD_DEFINITION
+  directive @upload(type: String) on INPUT_FIELD_DEFINITION
 
   type PaginationInfo {
     nodesCount: Int
@@ -30,6 +32,7 @@ export default makeExecutableSchema({
   resolvers: [UserResolvers, ActivityResolvers],
   schemaDirectives: {
     log: LogDirective,
-    auth: AuthDirective
+    auth: AuthDirective,
+    upload: UploadDirective
   }
 });

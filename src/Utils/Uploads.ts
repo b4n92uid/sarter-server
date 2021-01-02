@@ -1,69 +1,77 @@
-import { createWriteStream, mkdirSync, readFileSync, unlink } from "fs";
-import mime from "mime-types";
+import { UploadedFile } from "express-fileupload";
+import { createWriteStream, existsSync, unlink } from "fs";
+import { ensureDir } from "fs-extra";
 import { dirname, extname, join } from "path";
+import sharp from "sharp";
+import { Readable } from "stream";
 import urljoin from "url-join";
 import uuidv4 from "uuid/v4";
-import sharp from "sharp";
 
 import { resolveVar } from "./Config";
 
-type UploadTypes = "user";
-
-const ALLOWED_FILE_TYPE = [".webp", ".jpeg", ".jpg", ".png", ".gif"];
-
-function getUploadPath(type: string, filename: string) {
-  return join(resolveVar("/uploads"), type, filename);
-}
+const ALLOWED_FILE_EXT = [".webp", ".jpeg", ".jpg", ".png", ".gif"];
+const ALLOWED_UPLOAD_TYPE = ["user"];
 
 export async function handleUploadFile(
-  type: UploadTypes,
-  file: any
-): Promise<string> {
-  const { createReadStream, filename } = await file.promise;
-
-  const ext = extname(filename).toLowerCase();
-
-  if (!ALLOWED_FILE_TYPE.includes(ext)) {
-    throw new Error(`Upload file '${ext}' type not allowed`);
+  file: UploadedFile | UploadedFile[],
+  type: string
+) {
+  if (!ALLOWED_UPLOAD_TYPE.includes(type)) {
+    throw new Error(`Upload type '${type}' not allowed`);
   }
-
-  const dstFilename = uuidv4() + ".webp";
-  const path = getUploadPath(type, dstFilename);
 
   const resizer = sharp().resize(1024).rotate().webp();
 
-  return new Promise((resolve, reject) => {
-    mkdirSync(dirname(path), { recursive: true });
+  if (!Array.isArray(file)) file = [file];
 
-    const writeStream = createWriteStream(path);
+  const uploads = file.map(async f => {
+    const ext = extname(f.name).toLowerCase();
 
-    writeStream.on("error", error => {
-      unlink(path, () => {
-        reject(error);
+    if (!ALLOWED_FILE_EXT.includes(ext)) {
+      throw new Error(`Upload file ext '${ext}' not allowed`);
+    }
+
+    const dstFilename = uuidv4() + ".webp";
+    const dstPath = getUploadPath(type, dstFilename);
+
+    await ensureDir(dirname(dstPath));
+
+    return new Promise((resolve, reject) => {
+      const output = createWriteStream(dstPath);
+      output.on("error", error => {
+        unlink(dstPath, () => {
+          reject(error);
+        });
       });
+      output.on("finish", () => resolve(dstFilename));
+
+      const input = new Readable();
+      input._read = () => {
+        input.push(f.data);
+        input.push(null);
+      };
+
+      input.pipe(resizer).pipe(output);
     });
-
-    writeStream.on("finish", () => resolve(dstFilename));
-
-    const stream = createReadStream();
-    stream.on("error", error => writeStream.destroy(error));
-    stream.pipe(resizer).pipe(writeStream);
   });
+
+  return Promise.all(uploads);
 }
 
-export async function removeUploadFile(type: UploadTypes, filename: string) {
+export function getUploadPath(type: string, filename: string) {
+  return join(resolveVar("/uploads"), type, filename);
+}
+
+export function checkUploadPath(type: string, filename: string) {
+  const path = getUploadPath(type, filename);
+  return existsSync(path);
+}
+
+export async function removeUploadFile(type: string, filename: string) {
   const path = getUploadPath(type, filename);
   new Promise(resolve => unlink(path, resolve));
 }
 
-export function getUploadAsBase64(type: UploadTypes, filename: string) {
-  const path = getUploadPath(type, filename);
-  const content = readFileSync(path).toString("base64");
-  const mimeType = mime.lookup(path);
-
-  return `data:${mimeType};base64,${content}`;
-}
-
-export function getUploadUrl(type: UploadTypes, filename: string) {
+export function getUploadUrl(type: string, filename: string) {
   return urljoin(process.env.UPLOADS_PUBLIC_PATH, type, filename);
 }

@@ -3,6 +3,7 @@ import cors = require("cors");
 import * as dotenv from "dotenv";
 import express = require("express");
 import { Server } from "http";
+import fileUpload from "express-fileupload";
 
 import { setupServerRoutes } from "./Controller";
 import { setupServerApollo } from "./GraphQL";
@@ -34,6 +35,7 @@ async function main() {
       app.use(bodyParser.urlencoded({ extended: true }));
       app.use(bodyParser.json({ limit: "5mb" }));
       app.use("/uploads", express.static(resolveVar("/uploads")));
+      app.use(fileUpload());
 
       setupAuthStrategy(app);
 

@@ -4,17 +4,14 @@ import {
   gql,
   UserInputError
 } from "apollo-server-express";
-import { isNil } from "lodash";
 import { getRepository } from "typeorm";
 
 import User from "../../Entity/User/User";
-import { checkCrudAction, CRUD_OP } from "../../Utils/Check";
 import { Context } from "../../Utils/Context";
 import {
   paginationClause,
   paginationResponse
 } from "../../Utils/ResponseHelper";
-import { handleUploadFile, removeUploadFile } from "../../Utils/Uploads";
 
 export const UserTypeDefs = gql`
   type User {
@@ -39,7 +36,7 @@ export const UserTypeDefs = gql`
   input CreateUserInput {
     fullname: String
     username: String!
-    avatar: Upload
+    avatar: String @upload(type: "user")
     mail: String
     phone: String
     roles: [String] = []
@@ -48,7 +45,7 @@ export const UserTypeDefs = gql`
 
   input UpdateUserInput {
     fullname: String
-    avatar: Upload
+    avatar: String @upload(type: "user")
     mail: String
     phone: String
     roles: [String]
@@ -130,9 +127,6 @@ export const UserResolvers = {
           "User/INVALID_USERNAME"
         );
 
-      if (args.user.avatar)
-        args.user.avatar = await handleUploadFile("user", args.user.avatar);
-
       user = await getRepository(User).save(args.user);
 
       ctx.activity.info("User {0} has been created", [args.user.username]);
@@ -143,12 +137,6 @@ export const UserResolvers = {
     updateUser: async (_source, args, ctx: Context) => {
       const repo = getRepository(User);
       const user = await repo.findOne(args.id);
-
-      if (!isNil(args.user.avatar)) {
-        args.user.avatar = await handleUploadFile("user", args.user.avatar);
-      } else if (args.user.avatar === null) {
-        removeUploadFile("user", user.avatar);
-      }
 
       repo.merge(user, args.user);
 
